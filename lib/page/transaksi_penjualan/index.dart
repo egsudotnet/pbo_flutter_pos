@@ -1,45 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../helper/database.dart';
 import '../../model/master_barang.dart';
+import '../../model/transaksi.dart';
+ 
+ 
+// class TransaksiPenjualan extends StatelessWidget {
+//   final List<Barang> daftarBarang = [
+//     Barang(id: 1, nama: 'Item 1', harga: 10.0),
+//     Barang(id: 2, nama: 'Item 2', harga: 15.0),
+//     // Tambahkan barang lain sesuai kebutuhan
+//   ];
 
-// void main() {
-//   runApp(TransaksiPenjualan());
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       home: TransaksiPenjualan(daftarBarang: daftarBarang),
+//     );
+//   }
 // }
 
-class SaleItem {
-  final String name;
-  final double price;
-
-  SaleItem(this.name, this.price);
-}
-
 class TransaksiPenjualan extends StatefulWidget {
-
-  TransaksiPenjualan({super.key});
+  const TransaksiPenjualan({super.key});
 
   @override
-  State<TransaksiPenjualan> createState() => _TransaksiPenjualanState();
+  _TransaksiPenjualanState createState() => _TransaksiPenjualanState();
 }
 
 class _TransaksiPenjualanState extends State<TransaksiPenjualan> {
-  final List<SaleItem> _sales = [];
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
+  Barang? barangDipilih;
+  int jumlahBarang = 0;
   var instance = DatabaseHelper.instance;
   List<Barang> daftarBarang = [];
-  List<Barang> listBarangDipilih = [];
   
-  Barang? barangDipilih; // Variabel untuk menyimpan barang yang dipilih
-
-
-
   @override
   void initState() {
     super.initState();
     fetchData();
   }
-
+  
   void fetchData() async {
     List<Barang> result = await instance.queryAllBarangs();
     setState(() {
@@ -47,88 +49,62 @@ class _TransaksiPenjualanState extends State<TransaksiPenjualan> {
     });
   }
 
-
-  double calculateTotal() {
-    double total = 0.0;
-    for (var item in _sales) {
-      total += item.price;
+  void tambahTransaksi() async {
+    if (barangDipilih != null && jumlahBarang > 0) {
+      // // // var uuid = Uuid();
+      // // // String uniqueId = uuid.v4();
+      Transaksi transaksi = Transaksi(barangId: barangDipilih!.id!, jumlah: jumlahBarang, harga : barangDipilih!.harga);
+      int id = await instance.insertTransaksi(transaksi);
+      print('Transaksi baru ditambahkan dengan ID: $id');
     }
-    return total;
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Aplikasi Penjualan'),
-        ),
-        body: Column(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Transaksi Penjualan'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: <Widget>[
-                  // TextField(
-                  //   controller: _nameController,
-                  //   decoration: InputDecoration(labelText: 'Nama Item'),
-                  // ),
-
-                  DropdownButton<Barang>(
-                    value: barangDipilih,
-                    onChanged: (Barang? newValue) {
-                      setState(() {
-                        barangDipilih = newValue;
-                      });
-                    },
-                    items: daftarBarang.map((Barang barang) {
-                      return DropdownMenuItem<Barang>(
-                        value: barang,
-                        child: Text(barang.nama),
-                      );
-                    }).toList(),
-                  ),
-
-
-                  TextField(
-                    controller: _priceController,
-                    decoration: InputDecoration(labelText: 'Harga Item'),
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      String name = _nameController.text;
-                      double price = double.tryParse(_priceController.text) ?? 0.0;
-                      if (name.isNotEmpty && price > 0) {
-                        _sales.add(SaleItem(name, price));
-                        _nameController.clear();
-                        _priceController.clear();
-
-                        
-                      setState(() {
-                        listBarangDipilih.add(Barang(nama: name, harga: price)!);
-                      });
-                        // setState(() {}); // Memperbarui tampilan
-                      }
-                    },
-                    child: Text('Tambah Item Penjualan'),
-                  ),
-                ],
-              ),
+            DropdownButton<Barang>(
+              value: barangDipilih,
+              onChanged: (Barang? newValue) {
+                setState(() {
+                  barangDipilih = newValue;
+                });
+              },
+              items: daftarBarang.map((Barang barang) {
+                return DropdownMenuItem<Barang>(
+                  value: barang,
+                  child: Text(barang.nama),
+                );
+              }).toList(),
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _sales.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(_sales[index].name),
-                    subtitle: Text('Harga: \$${_sales[index].price.toStringAsFixed(2)}'),
-                  );
-                },
-              ),
+            const SizedBox(height: 16.0),
+            TextField(
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Jumlah Barang'),
+              onChanged: (value) {
+                setState(() {
+                  jumlahBarang = int.tryParse(value) ?? 0;
+                });
+              },
             ),
-            Text('Total Penjualan: \$${calculateTotal().toStringAsFixed(2)}',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                tambahTransaksi();
+                // Kosongkan pilihan barang dan jumlah setelah transaksi ditambahkan
+                setState(() {
+                  barangDipilih = null;
+                  jumlahBarang = 0;
+                });
+              },
+              child: const Text('Tambah Transaksi'),
+            ),
           ],
         ),
       ),

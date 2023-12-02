@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'page/master_barang/index.dart';
+import 'page/master_supplier/index.dart';
 import 'page/transaksi_penjualan/index.dart';
 
 void main() {
@@ -73,7 +74,18 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const PageScreen()));
+                        builder: (context) => const HomeBarangScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.list),
+              title: const Text('Master Supplier'),
+              onTap: () {
+                // Tambahkan logika untuk keluar dari aplikasi di sini
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const HomeSupplierScreen()));
               },
             ),
             const Divider(), // Garis pemisah

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:praktikum_flutter_pbo_pos/helper/database.dart';
-import '../../model/master_barang.dart';
+import '/helper/database.dart';
+import '../../model/master_supplier.dart';
 import 'create.dart';
 import 'update.dart';
 
-class HomeBarangScreen extends StatefulWidget {
-  const HomeBarangScreen({super.key});
+class HomeSupplierScreen extends StatefulWidget {
+  const HomeSupplierScreen({super.key});
 
   @override
-  _HomeBarangScreenState createState() => _HomeBarangScreenState();
+  _HomeSupplierScreenState createState() => _HomeSupplierScreenState();
 }
 
-class _HomeBarangScreenState extends State<HomeBarangScreen> {
-  List<Barang> barangs = [];
+class _HomeSupplierScreenState extends State<HomeSupplierScreen> {
+  List<Supplier> suppliers = [];
   var instance = DatabaseHelper.instance;
 
   @override
@@ -22,9 +22,9 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
   }
 
   void fetchData() async {
-    List<Barang> result = await instance.queryAllBarangs();
+    List<Supplier> result = await instance.queryAllSuppliers();
     setState(() {
-      barangs = result;
+      suppliers = result;
     });
   }
 
@@ -32,28 +32,28 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Daftar Barang'),
+        title: const Text('Daftar Supplier'),
       ),
       body: ListView.builder(
-        itemCount: barangs.length,
+        itemCount: suppliers.length,
         itemBuilder: (context, index) {
-          Barang barang = barangs[index];
+          Supplier supplier = suppliers[index];
           return ListTile(
-            title: Text(barang.nama),
-            subtitle: Text('Harga: Rp.${barang.harga.toStringAsFixed(2)}'),
+            title: Text(supplier.nama),
+            subtitle: Text('${supplier.alamat}'),
             trailing: IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
-                deleteBarang(context,barang.id!);
+                deleteSupplier(context,supplier.id!);
               },
             ),
             onLongPress: (){              
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) =>  UpdateBarangScreen(barang: barang,)),
+                MaterialPageRoute(builder: (context) =>  UpdateSupplierScreen(supplier: supplier,)),
               ).then((result) {
                 if (result == true) {
-                  fetchData(); // Memuat ulang daftar barang
+                  fetchData(); // Memuat ulang daftar supplier
                 }
               });
             },
@@ -62,18 +62,18 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // // Navigasi ke halaman tambah barang baru
+          // // Navigasi ke halaman tambah supplier baru
           // // Contoh:
           // Navigator.push(
           //   context,
-          //   MaterialPageRoute(builder: (context) => AddBarangScreen()),
+          //   MaterialPageRoute(builder: (context) => AddSupplierScreen()),
           // );
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AddBarangScreen()),
+            MaterialPageRoute(builder: (context) => const AddSupplierScreen()),
           ).then((result) {
             if (result == true) {
-              fetchData(); // Memuat ulang daftar barang
+              fetchData(); // Memuat ulang daftar supplier
             }
           });
         },
@@ -82,19 +82,13 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
     );
   }
 
-  // void deleteBarang(int id) async {
-  //   int result = await DatabaseHelper.instance.deleteBarang(id);
-  //   if (result > 0) {
-  //     fetchData();
-  //   }
-  // }
-  void deleteBarang(BuildContext context, int id) {
+  void deleteSupplier(BuildContext context, int id) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
         title: const Text('Konfirmasi Hapus'),
-        content: const Text('Apakah Anda yakin ingin menghapus barang ini?'),
+        content: const Text('Apakah Anda yakin ingin menghapus supplier ini?'),
         actions: <Widget>[
           TextButton(
             child: const Text('Batal'),
@@ -105,10 +99,10 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
           TextButton(
             child: const Text('Hapus'),
             onPressed: () async {
-              // Hapus barang dari database
-              int result = await instance.deleteBarang(id);
+              // Hapus supplier dari database
+              int result = await instance.deleteSupplier(id);
               if (result > 0) {
-                fetchData(); // Memuat ulang daftar barang setelah penghapusan
+                fetchData(); // Memuat ulang daftar supplier setelah penghapusan
                 Navigator.of(context).pop(); // Tutup dialog
               }
             },

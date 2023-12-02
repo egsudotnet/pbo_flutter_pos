@@ -1,26 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
-
 import '../../helper/database.dart';
-import '../../model/master_barang.dart';
+import '../../model/master_supplier.dart';
 
-class AddBarangScreen extends StatefulWidget {
-  const AddBarangScreen({super.key});
+class UpdateSupplierScreen extends StatefulWidget {
+  final Supplier supplier;
+
+  UpdateSupplierScreen({required this.supplier});
 
   @override
-  _AddBarangScreenState createState() => _AddBarangScreenState();
+  _UpdateSupplierScreenState createState() => _UpdateSupplierScreenState();
 }
 
-class _AddBarangScreenState extends State<AddBarangScreen> {
+class _UpdateSupplierScreenState extends State<UpdateSupplierScreen> {
   TextEditingController namaController = TextEditingController();
-  TextEditingController hargaController = TextEditingController();
+  TextEditingController alamatController = TextEditingController();
   var instance = DatabaseHelper.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    namaController.text = widget.supplier.nama;
+    alamatController.text = widget.supplier.alamat.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tambah Barang Baru'),
+        title: const Text('Update Supplier'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -29,20 +36,20 @@ class _AddBarangScreenState extends State<AddBarangScreen> {
           children: <Widget>[
             TextField(
               controller: namaController,
-              decoration: const InputDecoration(labelText: 'Nama Barang'),
+              decoration: const InputDecoration(labelText: 'Nama Supplier'),
             ),
             const SizedBox(height: 16.0),
             TextField(
-              controller: hargaController,
-              decoration: const InputDecoration(labelText: 'Harga (contoh: 10.00)'),
+              controller: alamatController,
+              decoration: const InputDecoration(labelText: 'Alamat'),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
-                tambahBarang();
+                perbaruiSupplier();
               },
-              child: const Text('Tambah Barang'),
+              child: const Text('Perbarui Supplier'),
             ),
           ],
         ),
@@ -50,19 +57,15 @@ class _AddBarangScreenState extends State<AddBarangScreen> {
     );
   }
 
-  void tambahBarang() {
+  void perbaruiSupplier() {
     String nama = namaController.text;
-    double harga = double.tryParse(hargaController.text) ?? 0.0;
+    String alamat = alamatController.text;
 
-    // var uuid = Uuid();
-    // String uniqueId = uuid.v4();
+    if (nama.isNotEmpty && alamat.isNotEmpty) {
+      // Perbarui supplier di database      
+      instance.updateSupplier(Supplier(id: widget.supplier.id, nama: nama,alamat: alamat));
 
-    if (nama.isNotEmpty && harga > 0) {
-      // Tambahkan barang ke database
-      instance.insertBarang(Barang(nama: nama,harga: harga));
-
-      // Kembali ke halaman sebelumnya setelah menambahkan
-      // Navigator.pop(context);
+      // Kembali ke halaman sebelumnya setelah memperbarui
       Navigator.pop(context, true);
     } else {
       // Tampilkan pesan kesalahan jika input tidak valid
